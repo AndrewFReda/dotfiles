@@ -1,6 +1,6 @@
-# Jeff’s dotfiles
+# Andy's dotfiles
 
-These were shamelessly lifted from [Matthias Bynens](https://github.com/jeffbyrnes) dotfiles, and edited to suit my setup.
+These were shamelessly lifted from [Jeff Byrnes](https://github.com/jeffbyrnes) dotfiles, and edited to suit my setup.
 
 ## Installation
 
