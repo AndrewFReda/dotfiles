@@ -1,10 +1,10 @@
 [alias]
-	# View the SHA, description, and history graph of the latest 20 commits
+	# View abbreviated SHA, description, and history graph of the latest 20 commits
 	l = log --pretty=oneline -n 20 --graph --abbrev-commit
 	# View the current working tree status using the short format
 	s = status -s
 	# Show the diff between the latest commit and the current state
-	d = !"git diff-index --quiet HEAD -- || clear; git diff --patch-with-stat"
+	d = !"git diff-index --quiet HEAD -- || clear; git --no-pager diff --patch-with-stat"
 	# `git di $number` shows the diff between the state `$number` revisions ago and the current state
 	di = !"d() { git diff --patch-with-stat HEAD~$1; }; git diff-index --quiet HEAD -- || clear; d"
 	# Pull in remote changes for the current repository and all its submodules
@@ -17,19 +17,30 @@
 	go = checkout -B
 	# Show verbose output about tags, branches or remotes
 	tags = tag -l
+	b = branch -a
 	branches = branch -a
 	remotes = remote -v
 	# Credit an author on the latest commit
 	credit = "!f() { git commit --amend --author \"$1 <$2>\" -C HEAD; }; f"
 	# Interactive rebase with the given number of latest commits
 	reb = "!r() { git rebase -i HEAD~$1; }; r"
+	# Find branches containing commit
+	fb = "!f() { git branch -a --contains $1; }; f"
+	# Find tags containing commit
+	ft = "!f() { git describe --always --contains $1; }; f"
+	# Find commits by source code
+	fc = "!f() { git log --pretty=format:'%C(yellow)%h  %Cblue%ad  %Creset%s%Cgreen  [%cn] %Cred%d' --decorate --date=short -S$1; }; f"
+	# Find commits by commit message
+	fm = "!f() { git log --pretty=format:'%C(yellow)%h  %Cblue%ad  %Creset%s%Cgreen  [%cn] %Cred%d' --decorate --date=short --grep=$1; }; f"
+	# Remove branches that have already been merged with master
+	dm = "!git branch --merged | grep -v '\\*' | xargs -n 1 git branch -d"
 	# Undo a `git push`
 	undopush = push -f origin HEAD^:master
 	# Sort branches & tags by last commit
 	brbylast = for-each-ref --sort=-committerdate --format='%(committerdate:short) %(refname:short) [%(committername)]'
 	# Various other shorthands
-	st = status
-	ci = commit
+	s  = status
+	c  = commit
 	br = branch
 	co = checkout
 	mr = merge
@@ -40,22 +51,24 @@
 	lola = log --graph --decorate --pretty=oneline --abbrev-commit --all
 	ls = ls-files
 	sta = stash
-	ksreview = "!f() { local SHA=${1:-HEAD}; local BRANCH=${2:-master}; if [ $SHA == $BRANCH ]; then SHA=HEAD; fi; git difftool -y -t Kaleidoscope $BRANCH...$SHA; }; f"
 
 [apply]
 	# Detect whitespace errors when applying a patch
-	whitespace = fix
+	whitespace = warn
 
 [core]
 	# Use custom `.gitignore` and `.gitattributes`
-	excludesfile = ~/.gitignore
-	attributesfile = ~/.gitattributes
-	# Treat spaces before tabs, lines that are indented with 8 or more spaces, and all kinds of trailing whitespace as an error
-	whitespace = -indent-with-non-tab,trailing-space
+	excludesfile = /Users/andrewfreda/.gitignore
+	# Treat all kinds of trailing whitespace as an error.
+	whitespace = trailing-space
+	# Make `git rebase` safer on OS X
+	# More info: <http://www.git-tower.com/blog/make-git-rebase-safe-on-osx/>
+	trustctime = false
 
 [color]
-	# Use colors in Git commands that are capable of colored output when outputting to the terminal
-	ui = auto
+	# Use colors in Git commands that are capable of colored output when
+	# outputting to the terminal. (This is the default setting in Git ≥ 1.8.4.)
+	ui = true
 [color "branch"]
 	current = yellow reverse
 	local = yellow
@@ -67,36 +80,39 @@
 	new = green bold
 	whitespace = white reverse
 [color "status"]
-	added = yellow
-	changed = green
+	added = green
+	changed = red
 	untracked = cyan
 	branch = magenta
 [merge]
 	# Include summaries of merged commits in newly created merge commit messages
 	log = true
-[difftool "Kaleidoscope"]
-	cmd = ksdiff --partial-changeset --relative-path \"$MERGED\" -- \"$LOCAL\" \"$REMOTE\"
+[diff]
+	tool = diffmerge
+[difftool]
+	prompt = false
 [difftool "diffmerge"]
-	cmd = diffmerge "$LOCAL" "$REMOTE"
+	cmd = diffmerge \"$LOCAL\" \"$REMOTE\"
 [difftool "sourcetree"]
 	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-	path =
+	path = 
+[merge]
+	tool = diffmerge
 [mergetool]
 	keepBackup = false
+	prompt = false
 [mergetool "diffmerge"]
-	cmd = diffmerge --merge --result="$MERGED" "$LOCAL" "$(if test -f "$BASE"; then echo "$BASE"; else echo "$LOCAL"; fi)" "$REMOTE"
+	cmd = diffmerge --merge --result=\"$MERGED\" \"$LOCAL\" \"$BASE\" \"$REMOTE\"
 	trustExitCode = true
 [mergetool "sourcetree"]
 	cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
 	trustExitCode = true
-[mergetool "Kaleidoscope"]
-	cmd = ksdiff --merge --output \"$MERGED\" --base \"$BASE\" -- \"$LOCAL\" --snapshot \"$REMOTE\" --snapshot
 
 
 # Use `origin` as the default remote on the `master` branch in all cases
 # [branch "master"]
-#	remote = origin
-#	merge = refs/heads/master
+# 	remote = origin
+# 	merge = refs/heads/master
 
 # URL shorthands
 [url "git@github.com:"]
@@ -113,4 +129,7 @@
 	insteadOf = "gist:"
 
 [push]
-	default = tracking
+	default = upstream
+[user]
+	name = andrewfreda
+	email = andrewfreda@gmail.com
