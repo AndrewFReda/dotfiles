@@ -2,11 +2,7 @@
 
 # bash_prompt
 
-# Shamelessly copied from https://github.com/Wilto/dotfiles
-
-# Example:
-# jeffbyrnes@host: ~/.dotfiles on master[+!?$]
-# $
+# Shamelessly copied from https://github.com/jeffbyrnes/dotfiles
 
 # Screenshot: http://i.imgur.com/DSJ1G.png
 # iTerm2 prefs: import Solarized theme (disable bright colors for bold text)
@@ -37,11 +33,12 @@ SOLAR_CYAN=$(tput setaf 37)
 SOLAR_GREEN=$(tput setaf 64)
 SOLAR_WHITE=$(tput setaf 254)
 
+style_retcode="\[${RESET}${SOLAR_RED}\]"
 style_user="\[${RESET}${SOLAR_ORANGE}\]"
 style_host="\[${RESET}${SOLAR_YELLOW}\]"
-style_path="\[${RESET}${SOLAR_GREEN}\]"
-style_chars="\[${RESET}\]"
-style_branch="${SOLAR_CYAN}"
+style_path="\[${RESET}${SOLAR_RED}\]"
+style_chars="\[${RESET}${SOLAR_RED}${BOLD}\]"
+style_branch="\[${SOLAR_CYAN}\]"
 
 if [[ "$SSH_TTY" ]]; then
     # connected via ssh
@@ -126,14 +123,14 @@ prompt_git() {
 # PS1="\[\033]0;\w\007\]"
 # Build the prompt
 PS1="\n" # Newline
-PS1+="${style_user}\u" # Username
-PS1+="${style_chars}@" # @
-PS1+="${style_host}\h" # Host
-PS1+="${style_chars}: " # :
-PS1+="${style_path}\w" # Working directory
-PS1+="\$(prompt_git)" # Git details
-PS1+="\n" # Newline
-PS1+="${style_chars}\$ \[${RESET}\]" # $ (and reset color)
+# PS1+="${style_retcode}(\$?) "        # Last cmd return code
+PS1+="${style_user}\u"               # Username
+PS1+="${style_chars}@"               # @
+PS1+="${style_host}\h"               # Host
+PS1+="${style_chars} "              # :
+PS1+="${style_path}\w:"               # Working directory
+#PS1+="\$(prompt_git)"                # Git details
+PS1+="\[${RESET}\] "                 # Reset color
 
 # Set the secondary prompt
 PS2="\[$yellow\]→ \[$RESET\]"
